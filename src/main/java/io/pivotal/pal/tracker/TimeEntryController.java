@@ -1,12 +1,14 @@
 package io.pivotal.pal.tracker;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
+import static org.springframework.http.ResponseEntity.*;
+
 @RestController
+@RequestMapping("/time-entries")
 public class TimeEntryController {
 
     private final TimeEntryRepository timeEntryRepository;
@@ -15,38 +17,38 @@ public class TimeEntryController {
         this.timeEntryRepository = timeEntryRepository;
     }
 
-    @PostMapping("/time-entries")
+    @PostMapping
     public ResponseEntity<TimeEntry> create(@RequestBody TimeEntry timeEntry) {
-        return new ResponseEntity<>(timeEntryRepository.create(timeEntry), HttpStatus.CREATED);
+        return status(HttpStatus.CREATED)
+                .body(timeEntryRepository.create(timeEntry));
     }
 
-    @GetMapping("/time-entries/{id}")
+    @GetMapping("{id}")
     public ResponseEntity<TimeEntry> read(@PathVariable long id) {
-        TimeEntry timeEntryById = timeEntryRepository.find(id);
-        if(timeEntryById != null) {
-            return new ResponseEntity<>(timeEntryById, HttpStatus.OK);
-        }
-        return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        TimeEntry timeEntryFound = timeEntryRepository.find(id);
+
+        return timeEntryFound == null?
+                notFound().build():
+                ok(timeEntryFound);
     }
 
-    @GetMapping("/time-entries")
+    @GetMapping()
     public ResponseEntity<List<TimeEntry>> list() {
-        return new ResponseEntity<>(timeEntryRepository.list(), HttpStatus.OK);
+        return ok(timeEntryRepository.list());
     }
 
-    @PutMapping("/time-entries/{id}")
+    @PutMapping("{id}")
     public ResponseEntity<TimeEntry> update(@PathVariable Long id, @RequestBody TimeEntry timeEntry) {
-        TimeEntry timeEntryObj = timeEntryRepository.update(id, timeEntry);
-        if(timeEntryObj != null) {
-            return new ResponseEntity<>(timeEntryObj, HttpStatus.OK);
-        }
-        return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        TimeEntry timeEntryUpdated = timeEntryRepository.update(id, timeEntry);
+        return timeEntryUpdated == null
+                ? notFound().build():
+                ok(timeEntryUpdated);
     }
 
-    @DeleteMapping("/time-entries/{id}")
+    @DeleteMapping("{id}")
     public ResponseEntity<Void> delete(@PathVariable long id) {
         timeEntryRepository.delete(id);
-        return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+        return noContent().build();
     }
 
 }
